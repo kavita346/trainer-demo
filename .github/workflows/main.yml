@@ -13,14 +13,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Copy files to EC2
+    - name: Set file permissions
+      run: chmod 644 index.html
+
+    - name: Create tar archive
+      run: tar -czf IEARBTvKRL.tar.gz index.html
+
+    - name: Copy tar archive to server
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_PRIVATE_KEY }}
-        source: "index.html"
+        source: "IEARBTvKRL.tar.gz"
         target: "/var/www/html/"
+
+    - name: SSH into EC2 and extract tar archive
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_PRIVATE_KEY }}
+        script: |
+          cd /var/www/html/
+          tar -xzf IEARBTvKRL.tar.gz
+          rm IEARBTvKRL.tar.gz
 
     - name: SSH into EC2 and restart Nginx
       uses: appleboy/ssh-action@master
